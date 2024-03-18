@@ -63,4 +63,8 @@ async def get_info():
     """
     Endpoint to get information about showing ads.
     """
-    return {"showAds": session.show_ads()}
+    return {
+        "showAds": session.show_ads(),
+        "timeUntilAppropriateMoment": session.time_until_appropriate_moment(),
+        "userActive": session.is_user_active(),
+    }

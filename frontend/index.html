@@ -9,6 +9,19 @@
         #audioPlayer, #adInfo {
             display: none;
         }
+        .loader {
+            border: 16px solid #f3f3f3;
+            border-top: 16px solid #3498db;
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            animation: spin 2s linear infinite;
+            display: none; /* Initially hide loader */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -17,15 +30,21 @@
         <br>
         <audio id="audioPlayer" class="mt-3" controls></audio>
         <br>
-        <div id="adInfo"></div>
+        <div id="showAds"></div>
+        <div id="timeUntilNextAd"></div>
+        <div id="userActive"></div>
+        <div class="loader" id="loader"></div> <!-- Loader element -->
     </div>
 
     <script>
         const apiUrl = 'http://127.0.0.1:8000';
 
         let audioPlayer = document.getElementById('audioPlayer');
-        let adInfoDisplay = document.getElementById('adInfo');
+        let showAdsDisplay = document.getElementById('showAds');
+        let timeUntilNextAdDisplay = document.getElementById('timeUntilNextAd');
+        let userActiveDisplay = document.getElementById('userActive');
         let audioFileInput = document.getElementById('audioFile');
+        let loader = document.getElementById('loader'); // Loader element
 
         audioFileInput.addEventListener('change', function() {
             uploadAudio();
@@ -36,6 +55,9 @@
             let file = audioFileInput.files[0];
             let formData = new FormData();
             formData.append('audioFile', file);
+
+            // Show loader while uploading
+            loader.style.display = 'block';
 
             fetch(`${apiUrl}/upload`, {
                 method: 'POST',
@@ -66,6 +88,10 @@
             })
             .catch(error => {
                 console.error('Error uploading audio file:', error);
+            })
+            .finally(() => {
+                // Hide loader when upload is completed or encounters an error
+                loader.style.display = 'none';
             });
         }
 
@@ -100,7 +126,9 @@
             })
             .then(data => {
                 console.log('Ad info fetched successfully:', data);
-                adInfoDisplay.textContent = `Show Ads: ${data.showAds}`;
+                showAdsDisplay.textContent = `Show Ads: ${data.showAds}`;
+                timeUntilNextAdDisplay.textContent = `Next Potential Ad in: ${data.timeUntilAppropriateMoment} seconds`;
+                userActiveDisplay.textContent = `User Active: ${data.userActive}`;
             })
             .catch(error => {
                 console.error('Error fetching ad info:', error);
