@@ -9,7 +9,7 @@ class Session:
         self.intervals = []
 
     def upload_file(self, audio_file_data: bytes) -> None:
-        path = "audio.mp3"
+        path = "file"
         with open(path, "wb") as audio_file:
             audio_file.write(audio_file_data)
         self.intervals = NLPModel().detect(path)
