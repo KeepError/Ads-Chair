@@ -18,6 +18,13 @@ const int rotationValuesNum = 20;
 float rotationValues[rotationValuesNum] = {0};
 int rotationIndex = 0;
 
+const int avgValuesNum = 5;
+float avgValues[avgValuesNum] = {0};
+int avgValuesIndex = 0;
+
+float lastAvgAvges = -1;
+
+
 void setup() {
   Serial.begin(115200);
 
@@ -71,16 +78,44 @@ bool getActivity() {
   // Calculate total acceleration magnitude
   float gtotal = sqrt(sq(gx) + sq(gy) + sq(gz));
 
-  // Update rotation values array
+  // Update rotation values
   rotationValues[rotationIndex] = gtotal;
   rotationIndex = (rotationIndex + 1) % rotationValuesNum;
 
-  // Calculate average rotation value
   float gtotalavg = 0;
   for (int i = 0; i < rotationValuesNum; i++) {
     gtotalavg += rotationValues[i];
   }
   gtotalavg /= rotationValuesNum;
+
+  // Update avges
+  if (rotationIndex == rotationValuesNum - 1) {
+    avgValues[avgValuesIndex] = gtotalavg;
+    avgValuesIndex = (avgValuesIndex + 1) % avgValuesNum;
+  }
+
+  bool appropriate = true;
+  // Update lastAvgAvges
+  if (avgValuesIndex == avgValuesNum - 1 && rotationIndex == rotationValuesNum - 1) {
+    float avgAvgValues = 0;
+      for (int i = 0; i < avgValuesNum; i++) {
+      avgAvgValues += avgValues[i];
+    }
+    avgAvgValues /= avgValuesNum;
+    Serial.print("Average of averages: ");
+    Serial.println(avgAvgValues);
+
+    if (lastAvgAvges != -1) {
+      float diff = lastAvgAvges - avgAvgValues;
+      if (diff < 0) {
+        diff = -diff;
+      }
+      if (diff > 2000) {
+        appropriate = false;
+      }
+    }
+    lastAvgAvges = avgAvgValues;
+  }
 
   Serial.print("Rotation X: ");
   Serial.print(gx);
@@ -95,7 +130,9 @@ bool getActivity() {
   Serial.println(" rad/s");
 
   // Check if motion exceeds threshold
-  bool active = (gtotal < 500) || (gtotal > 2000);
+  bool active = (gtotal > 150) && (gtotal < 5000) && appropriate;
+  Serial.print("Is active: ");
+  Serial.println(active);
 
   return active;
 }
